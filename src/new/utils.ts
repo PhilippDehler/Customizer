@@ -22,28 +22,27 @@ export function useHover(element: () => CanvasElement): Accessor<boolean> {
   });
   return hover;
 }
-type Nullable<T> = { [Key in keyof T]?: T[Key] };
+export type Nullable<T> = { [Key in keyof T]?: T[Key] };
 
 export function createRelativeSignal(
-  parent: () => CanvasElement,
-  calcOffset?: (parent: () => CanvasElement) => Nullable<Rect>
+  relativeRectSignal: Signal<Rect>,
+  calcOffset?: (relativeRect: () => Rect) => Nullable<Rect>
 ): Signal<Rect> {
   return [
     () => {
-      const offset = calcOffset?.(parent) ?? {};
+      const offset = calcOffset?.(relativeRectSignal[0]) ?? {};
       const rotation = rotatePoint(
-        { ...parent().rectangle(), ...offset },
-        parent().rectangle(),
-        parent().rectangle().rotation
+        { ...relativeRectSignal[0](), ...offset },
+        relativeRectSignal[0](),
+        relativeRectSignal[0]().rotation
       );
       return {
-        ...parent().rectangle(),
+        ...relativeRectSignal[0](),
         ...offset,
         ...rotation,
       };
     },
-
-    parent().setRectangle,
+    relativeRectSignal[1],
   ];
 }
 export function wrapRelativePosition() {}
@@ -139,5 +138,12 @@ export function makeResizeObserver<T extends Element>(
   return {
     observe: (ref) => ref && resizeObserver.observe(ref, options),
     unobserve: resizeObserver.unobserve.bind(resizeObserver),
+  };
+}
+
+export function elementSnapshot(canvasElement: CanvasElement): any {
+  return {
+    ...canvasElement,
+    children: canvasElement.children().map(elementSnapshot),
   };
 }

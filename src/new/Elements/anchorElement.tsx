@@ -11,7 +11,7 @@ import {
 } from "../utils";
 
 export function anchorElement(
-  getStartCoords: (parent: () => CanvasElement) => Position,
+  getStartCoords: (parent: () => Rect) => Position,
   parent: () => CanvasElement,
   document: CanvasElement
 ) {
@@ -26,11 +26,14 @@ export function anchorElement(
     }[]
   >([]);
 
-  const relativeSignal = createRelativeSignal(parent, (p) => ({
-    ...getStartCoords(p),
-    width: 30,
-    height: 30,
-  }));
+  const relativeSignal = createRelativeSignal(
+    [parent().rectangle, parent().setRectangle],
+    (p) => ({
+      ...getStartCoords(p),
+      width: 30,
+      height: 30,
+    })
+  );
 
   const anchor = parent().addAndCreateChild(
     "anchor",

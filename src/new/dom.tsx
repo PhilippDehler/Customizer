@@ -52,7 +52,7 @@ export function createElement(
     addChild: (child: CanvasElement) => {
       const prevLength = children().length;
       setChildren((prev) => [...prev, child]);
-      return children()[prevLength];
+      return children().at(-1)!;
     },
     addChildren: (children: CanvasElement[]) =>
       children.map((child) => self.addChild(child)),

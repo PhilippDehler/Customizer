@@ -21,11 +21,14 @@ export function rotatorElement(parent: () => CanvasElement) {
 
   const [isActive, setIsActive] = createSignal(false);
 
-  const relativePosition = createRelativeSignal(parent, (p) => ({
-    width: 30,
-    height: 30,
-    y: p().rectangle().y - p().rectangle().height / 2 - 100,
-  }));
+  const relativePosition = createRelativeSignal(
+    [parent().rectangle, parent().setRectangle],
+    (p) => ({
+      width: 30,
+      height: 30,
+      y: p().y - p().height / 2 - 100,
+    })
+  );
 
   const dragger = parent().addAndCreateChild(
     "rotate",

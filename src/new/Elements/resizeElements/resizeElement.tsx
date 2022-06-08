@@ -23,11 +23,14 @@ function resizeElement(
 ) {
   const parentIsHovered = useHover(parent);
   const [isActive, setIsActive] = createSignal(false);
-  const relativePosition = createRelativeSignal(parent, (p) => ({
-    ...cornerPairs[key].corner(p().rectangle()),
-    width: 20,
-    height: 30,
-  }));
+  const relativePosition = createRelativeSignal(
+    [parent().rectangle, parent().setRectangle],
+    (p) => ({
+      ...cornerPairs[key].corner(p()),
+      width: 20,
+      height: 30,
+    })
+  );
 
   const resizeBox = parent().addAndCreateChild(
     "resize",

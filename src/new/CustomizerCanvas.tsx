@@ -1,11 +1,11 @@
-import { createSignal, onCleanup, onMount } from "solid-js";
+import { createSignal, createUniqueId, onCleanup, onMount } from "solid-js";
 import { Mouse } from "../types";
 import { clearCanvas, createElement, domRenderer } from "./dom";
 import { dragElement } from "./Elements/dragElement";
-import { eventExecutor } from "./event";
+import { dispatchEvents } from "./event";
 import { resizeContainer } from "./Elements/resizeElements/resizeElement";
 import { rotatorElement } from "./Elements/rotator";
-import { drawRect, useCanvasRect } from "./utils";
+import { drawRect, elementSnapshot, useCanvasRect } from "./utils";
 import { anchorElement } from "./Elements/anchorElement";
 
 export function CustomizerCanvas() {
@@ -28,18 +28,18 @@ export function CustomizerCanvas() {
     }
   );
 
-  box1.addChild(dragElement({ width: 30, height: 30 }, () => box1));
+  dragElement({ width: 30, height: 30 }, () => box1);
 
-  resizeContainer(() => box1);
-  rotatorElement(() => box1);
-  anchorElement(
-    (p) => ({
-      x: p().rectangle().x,
-      y: p().rectangle().y - p().rectangle().height / 2,
-    }),
-    () => box1,
-    document
-  );
+  // resizeContainer(() => box1);
+  // rotatorElement(() => box1);
+  // anchorElement(
+  //   (p) => ({
+  //     x: p().x,
+  //     y: p().y - p().height / 2,
+  //   }),
+  //   () => box1,
+  //   document
+  // );
 
   const box2 = document.addAndCreateChild(
     "box",
@@ -55,17 +55,17 @@ export function CustomizerCanvas() {
     }
   );
 
-  box2.addChild(dragElement({ width: 30, height: 30 }, () => box2));
-  resizeContainer(() => box2);
-  rotatorElement(() => box2);
-  anchorElement(
-    (p) => ({
-      x: p().rectangle().x,
-      y: p().rectangle().y - p().rectangle().height / 2,
-    }),
-    () => box2,
-    document
-  );
+  dragElement({ width: 30, height: 30 }, () => box2);
+  // resizeContainer(() => box2);
+  // rotatorElement(() => box2);
+  // anchorElement(
+  //   (p) => ({
+  //     x: p().x,
+  //     y: p().y - p().height / 2,
+  //   }),
+  //   () => box2,
+  //   document
+  // );
 
   document.addAndCreateChild(
     "fpsCounter",
@@ -99,13 +99,22 @@ export function CustomizerCanvas() {
         ref={canvas!}
         class=" bg-slate-500"
         onpointerdown={(e) => {
-          eventExecutor("down", { mouse: mousePosition() });
+          dispatchEvents(document, "down", {
+            mouse: mousePosition(),
+            eventId: createUniqueId(),
+          });
         }}
         onpointerup={(e) => {
-          eventExecutor("up", { mouse: mousePosition() });
+          dispatchEvents(document, "up", {
+            mouse: mousePosition(),
+            eventId: createUniqueId(),
+          });
         }}
         onPointerLeave={(e) => {
-          eventExecutor("up", { mouse: mousePosition() });
+          dispatchEvents(document, "up", {
+            mouse: mousePosition(),
+            eventId: createUniqueId(),
+          });
         }}
         onpointerenter={(e) => {
           const rect = e.currentTarget.getBoundingClientRect();
@@ -119,11 +128,13 @@ export function CustomizerCanvas() {
               dy: prev?.y ? y - prev.y : 0,
             };
           });
-          eventExecutor("move", { mouse: mousePosition() });
+          dispatchEvents(document, "move", {
+            mouse: mousePosition(),
+            eventId: createUniqueId(),
+          });
         }}
         onpointermove={(e) => {
           const rect = e.currentTarget.getBoundingClientRect();
-
           setMousePosition((prev) => {
             const x = e.clientX - rect.x;
             const y = e.clientY - rect.y;
@@ -134,10 +145,16 @@ export function CustomizerCanvas() {
               dy: prev?.y ? y - prev.y : 0,
             };
           });
-          eventExecutor("move", { mouse: mousePosition() });
+          dispatchEvents(document, "move", {
+            mouse: mousePosition(),
+            eventId: createUniqueId(),
+          });
         }}
         onpointerleave={(e) => {
-          eventExecutor("up", { mouse: mousePosition() });
+          dispatchEvents(document, "up", {
+            mouse: mousePosition(),
+            eventId: createUniqueId(),
+          });
         }}
         width={1000}
         height={1000}

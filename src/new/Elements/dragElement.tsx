@@ -1,7 +1,8 @@
-import { createSignal } from "solid-js";
+import { createSignal, onCleanup } from "solid-js";
 import { Dimensions } from "../../types";
 import { positionInRect } from "../../utils";
 import { CanvasElement } from "../dom";
+import { Event } from "../event";
 import { createRelativeSignal, drawRect, useHover } from "../utils";
 
 export function dragElement(
@@ -12,9 +13,11 @@ export function dragElement(
   parent: () => CanvasElement
 ) {
   const parentIsHovered = useHover(parent);
-
   const [isActive, setIsActive] = createSignal(false);
-  const relativeSignal = createRelativeSignal(parent, (p) => dimensions);
+  const relativeSignal = createRelativeSignal(
+    [parent().rectangle, parent().setRectangle],
+    (p) => dimensions
+  );
 
   const dragger = parent().addAndCreateChild(
     "drag",
@@ -28,25 +31,21 @@ export function dragElement(
   dragger.addEventListener("up", () => {
     setIsActive(false);
   });
-
-  dragger.addEventListener("move", (e) => {
+  function drag(e: Event) {
     if (!isActive()) return;
-
-    e.element.setRectangle((prev) => {
+    e.element.parent()?.setRectangle((prev) => {
       if (!e.mouse) return prev;
+      e.stopPropagation?.();
+      console.log(e.element.id(), e.element.key, e.eventId);
       return {
         ...prev,
         x: prev.x + e.mouse!.dx,
         y: prev.y + e.mouse!.dy,
       };
     });
-  });
-
+  }
+  dragger.addEventListener("move", drag);
   dragger.addEventListener("down", (event) => {
-    //#endregio
-
-    console.log("second");
-
     if (!event.mouse) return;
     if (!positionInRect(event.mouse, event.element.rectangle())) return;
     setIsActive(true);
