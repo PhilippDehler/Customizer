@@ -1,0 +1,21 @@
+{
+    "include": [
+        "."
+    ],
+    "compilerOptions": {
+        "noEmit": true,
+        "jsx": "preserve",
+        "jsxImportSource": "solid-js",
+        "skipLibCheck": true,
+        "target": "ESNext",
+        "module": "commonjs",
+        "strict": true,
+        "moduleResolution": "node",
+        "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true,
+        "resolveJsonModule": true,
+    },
+    "lib": [
+        "DOM"
+    ]
+}
