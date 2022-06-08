@@ -6,21 +6,25 @@ import {
   Signal,
 } from "solid-js";
 import { Rect } from "../types";
-import { DomEvent, eventBuilder } from "./event";
-export type DomRender = (
+import { positionInRect } from "../utils";
+import { DomEvent, buildEventSubscribers } from "./event";
+
+export type Render = (
   ctx: CanvasRenderingContext2D,
   canvasElement: CanvasElement
 ) => void;
 
 export type CanvasElement = DomElement &
   DomEvent &
-  DOMUtils & { render: DomRender } & {
+  DOMUtils & { render: Render } & {
     addAndCreateChild: (
       key: string,
       rect: Rect | Signal<Rect>,
-      render: DomRender
+      render: Render
     ) => CanvasElement;
+    hover: Accessor<boolean>;
   };
+
 export type DomElement = {
   id: () => string;
   key: string;
@@ -39,7 +43,7 @@ type DOMUtils = {
 export function createElement(
   key: string,
   rect: Rect | Signal<Rect>,
-  render: DomRender,
+  render: Render,
   parent: () => CanvasElement | null = () => null
 ) {
   const [rectangle, setRectangle] = Array.isArray(rect)
@@ -50,7 +54,6 @@ export function createElement(
 
   const domUtils: DOMUtils = {
     addChild: (child: CanvasElement) => {
-      const prevLength = children().length;
       setChildren((prev) => [...prev, child]);
       return children().at(-1)!;
     },
@@ -63,7 +66,7 @@ export function createElement(
     },
   };
 
-  const domElement = {
+  const element = {
     id: () => id,
     key,
     rectangle,
@@ -72,18 +75,25 @@ export function createElement(
     children,
   };
 
-  const domEvents = eventBuilder(domElement);
+  const elementEvents = buildEventSubscribers(element);
+
+  const [hover, setHover] = createSignal(false);
+  elementEvents.onmove((event) => {
+    if (!event.mouse) return setHover(false);
+    return setHover(positionInRect(event.mouse, rectangle()));
+  });
 
   const self: CanvasElement = {
     render,
-    ...domElement,
+    hover,
+    ...element,
     ...domUtils,
-    ...domEvents,
+    ...elementEvents,
     ...{
       addAndCreateChild: (
         key: string,
         rect: Rect | Signal<Rect>,
-        render: DomRender
+        render: Render
       ) => self.addChild(createElement(key, rect, render, () => self)),
     },
   };
@@ -93,10 +103,30 @@ export function createElement(
 export const clearCanvas = (ctx: CanvasRenderingContext2D) =>
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
-export const domRenderer = (
-  ctx: CanvasRenderingContext2D,
-  canvasElement: CanvasElement
-) => {
-  canvasElement.render(ctx, canvasElement);
-  canvasElement.children().forEach((child) => domRenderer(ctx, child));
-};
+type RenderType = "box" | "image";
+
+class Node {
+  id: string = createUniqueId();
+  next: Node[] = [];
+  children: Signal<Node[]> = createSignal([]);
+  constructor(public parent: Node | null = null) {
+    function a(n: Node) {
+      return n;
+    }
+    a(this);
+  }
+
+  addChild = (child: Node) => {
+    this.children[1]((prev) => [...prev, child]);
+    return this.children[0]().at(-1)!;
+  };
+
+  addChildren = (children: Node[]) =>
+    children.map((child) => this.addChild(child));
+
+  querySelector = (id: string): Node | null => {
+    if (id === this.id) return this;
+    if (!parent) return null;
+    return this.parent?.querySelector(id) ?? null;
+  };
+}

@@ -10,11 +10,11 @@ import {
 import { CanvasElement } from "../dom";
 import {
   createRelativeSignal,
-  drawRect,
   getOrigin,
   rotatePoint,
   useHover,
 } from "../utils";
+import { drawRect } from "../domRender";
 
 export function rotatorElement(parent: () => CanvasElement) {
   const parentIsHovered = useHover(parent);
@@ -34,15 +34,16 @@ export function rotatorElement(parent: () => CanvasElement) {
     "rotate",
     relativePosition,
     (ctx, element) => {
+      if (!dragger.parent()?.hover()) return;
       drawRect(ctx, element.rectangle(), "#000000");
     }
   );
 
-  dragger.addEventListener("up", () => {
+  dragger.onup(() => {
     setIsActive(false);
   });
 
-  dragger.addEventListener("move", (e) => {
+  dragger.onmove((e) => {
     if (!isActive()) return;
     e.element.setRectangle((prev) => {
       if (!e.mouse) return prev;
@@ -50,7 +51,6 @@ export function rotatorElement(parent: () => CanvasElement) {
         x: 0,
         y: -1,
       });
-
       return {
         ...prev,
         rotation: angle,
@@ -58,7 +58,7 @@ export function rotatorElement(parent: () => CanvasElement) {
     });
   });
 
-  dragger.addEventListener("down", (event) => {
+  dragger.ondown((event) => {
     if (!event.mouse) return;
     if (!positionInRect(event.mouse, event.element.rectangle())) return;
     setIsActive(true);

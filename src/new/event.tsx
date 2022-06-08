@@ -32,31 +32,37 @@ export type DomEvent = {
     type: CanvasEvents,
     listener: (event: Event) => void
   ) => void;
-} & { [Key in CanvasEvents]: (listener: Listener) => void };
+} & { [Key in MapNames<CanvasEvents>]: (listener: Listener) => void };
 
+type MapNames<T extends CanvasEvents> = T extends infer CE
+  ? CE extends string
+    ? `on${CE}`
+    : never
+  : never;
 export type DomEventBuilder = (self: DomElement) => DomEvent;
-function getDefaultMap() {
+
+function getInitalListenerMap() {
   const x: ListenerMap = new Map();
   canvasEvents.forEach((e) => x.set(e, new Map()));
   return x;
 }
 
-export const eventBuilder: DomEventBuilder = (self: DomElement) => {
-  const [get, set] = createSignal<ListenerMap>(getDefaultMap());
-
+export const buildEventSubscribers: DomEventBuilder = (self: DomElement) => {
+  const [get, set] = createSignal<ListenerMap>(getInitalListenerMap());
+  const addEventListener: DomEvent["addEventListener"] = (type, listener) => {
+    set((prev) => {
+      prev.get(type)!.set(listener, { listener, element: self });
+      console.log(type, get().get(type)?.entries());
+      return prev;
+    });
+  };
   return {
     dispatch: (type, scope) => {
       get()
         .get(type)!
         .forEach(({ listener, element }) => listener({ ...scope, element }));
     },
-    addEventListener: (type, listener) => {
-      set((prev) => {
-        prev.get(type)!.set(listener, { listener, element: self });
-        console.log(type, get().get(type)?.entries());
-        return prev;
-      });
-    },
+    addEventListener,
     removeEventListener: (
       type: CanvasEvents,
       listener: (event: Event) => void
@@ -69,14 +75,9 @@ export const eventBuilder: DomEventBuilder = (self: DomElement) => {
     ...canvasEvents.reduce(
       (agg, type) => ({
         ...agg,
-        [`on${type}`]: (listener: Listener) => {
-          set((prev) => {
-            prev.get(type)!.set(listener, { listener, element: self });
-            return prev;
-          });
-        },
+        [`on${type}`]: (listener: Listener) => addEventListener(type, listener),
       }),
-      {} as { [Key in CanvasEvents]: (listener: Listener) => void }
+      {} as { [Key in MapNames<CanvasEvents>]: (listener: Listener) => void }
     ),
   };
 };

@@ -7,14 +7,10 @@ import {
   sub,
 } from "../../../utils";
 import { CanvasElement } from "../../dom";
-import {
-  createRelativeSignal,
-  drawRect,
-  rotatePoint,
-  useHover,
-} from "../../utils";
+import { createRelativeSignal, rotatePoint, useHover } from "../../utils";
 import { Dimensions, Rect } from "../../../types";
 import { Event } from "../../event";
+import { drawRect } from "../../domRender";
 
 function resizeElement(
   key: keyof typeof cornerPairs,

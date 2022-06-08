@@ -3,12 +3,8 @@ import { Position, Rect } from "../../types";
 import { positionInRect } from "../../utils";
 
 import { CanvasElement, createElement, DomElement } from "../dom";
-import {
-  createRelativeSignal,
-  drawRect,
-  rotatePoint,
-  useHover,
-} from "../utils";
+import { createRelativeSignal, rotatePoint, useHover } from "../utils";
+import { drawRect } from "../domRender";
 
 export function anchorElement(
   getStartCoords: (parent: () => Rect) => Position,
@@ -116,5 +112,3 @@ function getElementsByKey(
     ...element.children().flatMap((child) => getElementsByKey(key, child)),
   ];
 }
-
-function elementIsHovered(element: DomElement) {}

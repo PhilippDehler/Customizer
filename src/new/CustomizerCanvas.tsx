@@ -1,21 +1,22 @@
 import { createSignal, createUniqueId, onCleanup, onMount } from "solid-js";
 import { Mouse } from "../types";
-import { clearCanvas, createElement, domRenderer } from "./dom";
+import { clearCanvas, createElement } from "./dom";
 import { dragElement } from "./Elements/dragElement";
 import { dispatchEvents } from "./event";
 import { resizeContainer } from "./Elements/resizeElements/resizeElement";
 import { rotatorElement } from "./Elements/rotator";
-import { drawRect, elementSnapshot, useCanvasRect } from "./utils";
+import { elementSnapshot, useCanvasRect } from "./utils";
 import { anchorElement } from "./Elements/anchorElement";
+import { domRenderer, drawRect } from "./domRender";
 
 export function CustomizerCanvas() {
   const [mousePosition, setMousePosition] = createSignal<Mouse | null>(null);
   let canvas: HTMLCanvasElement | undefined;
   const fpsCounter = countFps();
   const documentRect = useCanvasRect(canvas);
-  const document = createElement("document", documentRect, () => {});
+  const document = createElement("document", documentRect, () => {}, undefined);
   const box1 = document.addAndCreateChild(
-    "box1",
+    "box",
     {
       x: 250,
       y: 250,
@@ -31,7 +32,7 @@ export function CustomizerCanvas() {
   dragElement({ width: 30, height: 30 }, () => box1);
 
   // resizeContainer(() => box1);
-  // rotatorElement(() => box1);
+  rotatorElement(() => box1);
   // anchorElement(
   //   (p) => ({
   //     x: p().x,

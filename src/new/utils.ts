@@ -53,35 +53,6 @@ export function rotatePoint(point: Position, origin: Position, angle: number) {
   return rotated;
 }
 
-export function drawRect(
-  ctx: CanvasRenderingContext2D,
-  rect: Rect,
-  color: string
-) {
-  const { x, y, width, height } = rect;
-
-  const halfWidth = width / 2;
-  const halfHeight = height / 2;
-
-  ctx.fillStyle = color;
-  ctx.beginPath();
-
-  let r: Position;
-  r = rotatePoint({ x: x - halfWidth, y: y - halfHeight }, rect, rect.rotation);
-  ctx.moveTo(r.x, r.y);
-  r = rotatePoint({ x: x + halfWidth, y: y - halfHeight }, rect, rect.rotation);
-  ctx.lineTo(r.x, r.y);
-  r = rotatePoint({ x: x + halfWidth, y: y + halfHeight }, rect, rect.rotation);
-  ctx.lineTo(r.x, r.y);
-  r = rotatePoint({ x: x - halfWidth, y: y + halfHeight }, rect, rect.rotation);
-  ctx.lineTo(r.x, r.y);
-  r = rotatePoint({ x: x - halfWidth, y: y - halfHeight }, rect, rect.rotation);
-  ctx.lineTo(r.x, r.y);
-
-  ctx.closePath();
-  ctx.fill();
-}
-
 export const getOrigin = (rect: Rect) => {
   return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
 };
@@ -92,8 +63,6 @@ export const applyRotation = (position: Position, angle: number) => {
     y: position.x * Math.sin(angle) + position.y * Math.cos(angle),
   };
 };
-
-console.log(applyRotation({ x: 0, y: 1 }, Math.PI / 2));
 
 export function useCanvasRect(target: Element | undefined) {
   const canvasSig = createSignal({

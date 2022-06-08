@@ -3,7 +3,8 @@ import { Dimensions } from "../../types";
 import { positionInRect } from "../../utils";
 import { CanvasElement } from "../dom";
 import { Event } from "../event";
-import { createRelativeSignal, drawRect, useHover } from "../utils";
+import { createRelativeSignal, useHover } from "../utils";
+import { drawRect } from "../domRender";
 
 export function dragElement(
   dimensions: Dimensions = {
