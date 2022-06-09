@@ -1,16 +1,9 @@
-import {
-  Accessor,
-  createEffect,
-  createSignal,
-  onCleanup,
-  onMount,
-  Signal,
-} from "solid-js";
-import { Dimensions, Position, Rect, Rotation } from "../types";
-import { add, positionInRect, radToDeg, sub } from "../utils";
-import { CanvasElement } from "./dom";
+import { Accessor, createSignal, onCleanup, onMount, Signal } from "solid-js";
+import { Position, Rect } from "../types";
+import { add, positionInRect, sub } from "../utils";
+import { CanvasNode } from "./dom";
 
-export function useHover(element: () => CanvasElement): Accessor<boolean> {
+export function useHover(element: () => CanvasNode): Accessor<boolean> {
   const [hover, setHover] = createSignal(false);
   element()?.addEventListener("move", (event) => {
     if (!event.mouse) return setHover(false);
@@ -110,7 +103,7 @@ export function makeResizeObserver<T extends Element>(
   };
 }
 
-export function elementSnapshot(canvasElement: CanvasElement): any {
+export function elementSnapshot(canvasElement: CanvasNode): any {
   return {
     ...canvasElement,
     children: canvasElement.children().map(elementSnapshot),

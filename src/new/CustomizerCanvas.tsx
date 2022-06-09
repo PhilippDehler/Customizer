@@ -1,20 +1,29 @@
 import { createSignal, createUniqueId, onCleanup, onMount } from "solid-js";
 import { Mouse } from "../types";
-import { clearCanvas, createElement } from "./dom";
-import { dragElement } from "./Elements/dragElement";
-import { dispatchEvents } from "./event";
-import { resizeContainer } from "./Elements/resizeElements/resizeElement";
-import { rotatorElement } from "./Elements/rotator";
-import { elementSnapshot, useCanvasRect } from "./utils";
-import { anchorElement } from "./Elements/anchorElement";
+import { clearCanvas, createNode } from "./dom";
 import { domRenderer, drawRect } from "./domRender";
+import { dragElement } from "./Elements/dragElement";
+import { imageElement } from "./Elements/imageElement";
+import { resizeContainer } from "./Elements/resizeElement";
+import { rotatorElement } from "./Elements/rotator";
+import { dispatchEvents } from "./event";
+import { useCanvasRect } from "./utils";
 
 export function CustomizerCanvas() {
   const [mousePosition, setMousePosition] = createSignal<Mouse | null>(null);
   let canvas: HTMLCanvasElement | undefined;
   const fpsCounter = countFps();
   const documentRect = useCanvasRect(canvas);
-  const document = createElement("document", documentRect, () => {}, undefined);
+  const document = createNode("document", {
+    rect: documentRect,
+    render: () => {},
+  });
+  const img = imageElement(
+    "https://picsum.photos/id/237/200/300",
+    () => document
+  );
+  dragElement({ width: 30, height: 30 }, () => img);
+  rotatorElement(() => img);
   const box1 = document.addAndCreateChild(
     "box",
     {
@@ -24,15 +33,23 @@ export function CustomizerCanvas() {
       height: 100,
       rotation: 0,
     },
-    (ctx, el) => {
-      drawRect(ctx, el.rectangle(), "#000000");
+    (ctx, drawEvent) => {
+      drawRect(ctx, { node: drawEvent.node, color: "#000000" });
     }
   );
 
   dragElement({ width: 30, height: 30 }, () => box1);
-
-  // resizeContainer(() => box1);
   rotatorElement(() => box1);
+
+  resizeContainer(() => img);
+  const img1 = imageElement(
+    "https://picsum.photos/id/237/200/300",
+    () => document
+  );
+  dragElement({ width: 30, height: 30 }, () => img1);
+  rotatorElement(() => img1);
+
+  resizeContainer(() => img1);
   // anchorElement(
   //   (p) => ({
   //     x: p().x,
@@ -51,8 +68,8 @@ export function CustomizerCanvas() {
       height: 70,
       rotation: 0,
     },
-    (ctx, el) => {
-      drawRect(ctx, el.rectangle(), "#fff000");
+    (ctx, drawEvent) => {
+      drawRect(ctx, { node: drawEvent.node, color: "#fff000" });
     }
   );
 
@@ -69,7 +86,7 @@ export function CustomizerCanvas() {
   // );
 
   document.addAndCreateChild(
-    "fpsCounter",
+    "text",
     { x: 0, y: 0, rotation: 0, width: 40, height: 40 },
     (ctx) => {
       ctx.font = "48px serif";

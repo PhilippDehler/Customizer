@@ -1,19 +1,18 @@
-import { createSignal, onCleanup } from "solid-js";
+import { createSignal } from "solid-js";
 import { Dimensions } from "../../types";
 import { positionInRect } from "../../utils";
-import { CanvasElement } from "../dom";
-import { Event } from "../event";
-import { createRelativeSignal, useHover } from "../utils";
+import { CanvasNode } from "../dom";
 import { drawRect } from "../domRender";
+import { Event } from "../event";
+import { createRelativeSignal } from "../utils";
 
 export function dragElement(
   dimensions: Dimensions = {
     width: 30,
     height: 30,
   },
-  parent: () => CanvasElement
+  parent: () => CanvasNode
 ) {
-  const parentIsHovered = useHover(parent);
   const [isActive, setIsActive] = createSignal(false);
   const relativeSignal = createRelativeSignal(
     [parent().rectangle, parent().setRectangle],
@@ -21,11 +20,11 @@ export function dragElement(
   );
 
   const dragger = parent().addAndCreateChild(
-    "drag",
+    "box",
     relativeSignal,
-    (ctx, el) => {
+    (ctx, drawEvent) => {
       // if (!isActive() && !parentIsHovered()) return;
-      drawRect(ctx, el.rectangle(), "#ff0fff");
+      drawRect(ctx, { node: drawEvent.node, color: "#ff0fff" });
     }
   );
 
@@ -37,7 +36,7 @@ export function dragElement(
     e.element.parent()?.setRectangle((prev) => {
       if (!e.mouse) return prev;
       e.stopPropagation?.();
-      console.log(e.element.id(), e.element.key, e.eventId);
+      console.log(e.element.id(), e.element.type, e.eventId);
       return {
         ...prev,
         x: prev.x + e.mouse!.dx,

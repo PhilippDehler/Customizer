@@ -1,4 +1,4 @@
-import { CanvasElement, Render } from "./new/dom";
+import { CanvasNode, Render } from "./new/dom";
 
 export type Mouse = {
   x: number;

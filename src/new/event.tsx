@@ -1,6 +1,7 @@
-import { Accessor, createSignal, Setter } from "solid-js";
-import { Mouse } from "../types";
-import { CanvasElement, DomElement } from "./dom";
+import { Accessor, createSignal } from "solid-js";
+import { Mouse, Rect } from "../types";
+import { positionInRect } from "../utils";
+import { CanvasNode, Node } from "./dom";
 import { Nullable } from "./utils";
 
 export type Event = EventScope & EventBinding & EventLoopContext;
@@ -13,16 +14,16 @@ type EventScope = {
 type EventLoopContext = {
   stopPropagation: () => void;
 };
-type EventBinding = { element: DomElement };
+type EventBinding = { element: Node };
 const canvasEvents = ["down", "up", "move", "leave"] as const;
-type CanvasEvents = "down" | "up" | "move" | "leave";
+type CanvasEvents = typeof canvasEvents[number];
 
 type ListenerMap = Map<
   CanvasEvents,
-  Map<Listener, { listener: Listener; element: DomElement }>
+  Map<Listener, { listener: Listener; element: Node }>
 >;
 
-export type DomEvent = {
+export type CanvasEvent = {
   dispatch: (type: CanvasEvents, scope: EventScope & EventLoopContext) => void;
   addEventListener: (
     type: CanvasEvents,
@@ -39,7 +40,8 @@ type MapNames<T extends CanvasEvents> = T extends infer CE
     ? `on${CE}`
     : never
   : never;
-export type DomEventBuilder = (self: DomElement) => DomEvent;
+
+export type DomEventBuilder = (self: Node) => CanvasEvent;
 
 function getInitalListenerMap() {
   const x: ListenerMap = new Map();
@@ -47,9 +49,12 @@ function getInitalListenerMap() {
   return x;
 }
 
-export const buildEventSubscribers: DomEventBuilder = (self: DomElement) => {
+export const buildEventSubscribers: DomEventBuilder = (self: Node) => {
   const [get, set] = createSignal<ListenerMap>(getInitalListenerMap());
-  const addEventListener: DomEvent["addEventListener"] = (type, listener) => {
+  const addEventListener: CanvasEvent["addEventListener"] = (
+    type,
+    listener
+  ) => {
     set((prev) => {
       prev.get(type)!.set(listener, { listener, element: self });
       console.log(type, get().get(type)?.entries());
@@ -83,7 +88,7 @@ export const buildEventSubscribers: DomEventBuilder = (self: DomElement) => {
 };
 
 export function dispatchEvents(
-  element: CanvasElement,
+  element: CanvasNode,
   type: CanvasEvents,
   {
     stopPropagation = () => {},
@@ -101,4 +106,28 @@ export function dispatchEvents(
 
   if (!propagation()) stopPropagation();
   else element.dispatch(type, { ...scope, stopPropagation });
+}
+
+export function addDefaultEvents(
+  rect: Accessor<Rect>,
+  eventHandler: CanvasEvent
+) {
+  const [hover, setHover] = createSignal(false);
+  eventHandler.onmove((event) => {
+    if (!event.mouse) return setHover(false);
+    return setHover(positionInRect(event.mouse, rect()));
+  });
+  const [focusState, setFocusState] = createSignal<
+    "hovered" | "focus" | "not-focused"
+  >("not-focused");
+  eventHandler.ondown(() => {
+    if (hover()) return setFocusState("hovered");
+    else setFocusState("not-focused");
+  });
+  eventHandler.onup((e) => {
+    if (hover() || e.element.children().some((child) => child.focus()))
+      return setFocusState("focus");
+    else setFocusState("not-focused");
+  });
+  return { focus: () => focusState() === "focus", hover };
 }

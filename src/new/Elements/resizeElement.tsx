@@ -1,39 +1,31 @@
-import { createSignal, requestCallback } from "solid-js";
-import {
-  add,
-  angleBetweenTwoVectors,
-  positionInRect,
-  radToDeg,
-  sub,
-} from "../../../utils";
-import { CanvasElement } from "../../dom";
-import { createRelativeSignal, rotatePoint, useHover } from "../../utils";
-import { Dimensions, Rect } from "../../../types";
-import { Event } from "../../event";
-import { drawRect } from "../../domRender";
+import { createSignal } from "solid-js";
+import { Rect } from "../../types";
+import { add, positionInRect, sub } from "../../utils";
+import { CanvasNode } from "../dom";
+import { drawRect } from "../domRender";
+import { Event } from "../event";
+import { createRelativeSignal, rotatePoint } from "../utils";
 
 function resizeElement(
   key: keyof typeof cornerPairs,
-  resizerDimensions: Dimensions,
-  parent: () => CanvasElement
+  parent: () => CanvasNode
 ) {
-  const parentIsHovered = useHover(parent);
   const [isActive, setIsActive] = createSignal(false);
   const relativePosition = createRelativeSignal(
     [parent().rectangle, parent().setRectangle],
     (p) => ({
       ...cornerPairs[key].corner(p()),
-      width: 20,
+      width: 30,
       height: 30,
     })
   );
 
   const resizeBox = parent().addAndCreateChild(
-    "resize",
+    "box",
     relativePosition,
-    (ctx, element) => {
+    (ctx, drawEvent) => {
       // if (!isActive() && !parentIsHovered()) return;
-      drawRect(ctx, element.rectangle(), "#ff0fff");
+      drawRect(ctx, { node: drawEvent.node, color: "#000111" });
     }
   );
 
@@ -57,13 +49,9 @@ function resizeElement(
   });
 }
 
-export function resizeContainer(parent: () => CanvasElement) {
+export function resizeContainer(parent: () => CanvasNode) {
   Object.keys(cornerPairs).forEach((key, i) => {
-    resizeElement(
-      key as keyof typeof cornerPairs,
-      { width: 10, height: 10 },
-      parent
-    );
+    resizeElement(key as keyof typeof cornerPairs, parent);
   });
   return parent;
 }

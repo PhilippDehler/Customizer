@@ -1,18 +1,15 @@
 import { Accessor, createSignal } from "solid-js";
 import { Position, Rect } from "../../types";
 import { positionInRect } from "../../utils";
-
-import { CanvasElement, createElement, DomElement } from "../dom";
-import { createRelativeSignal, rotatePoint, useHover } from "../utils";
+import { CanvasNode } from "../dom";
 import { drawRect } from "../domRender";
+import { createRelativeSignal } from "../utils";
 
 export function anchorElement(
   getStartCoords: (parent: () => Rect) => Position,
-  parent: () => CanvasElement,
-  document: CanvasElement
+  parent: () => CanvasNode,
+  document: CanvasNode
 ) {
-  const parentIsHovered = useHover(parent);
-
   const [isActive, setIsActive] = createSignal(false);
   const [snapStart, setSnapStart] = createSignal<Accessor<Rect> | null>(null);
   const [arrows, setArrows] = createSignal<
@@ -32,9 +29,9 @@ export function anchorElement(
   );
 
   const anchor = parent().addAndCreateChild(
-    "anchor",
+    "box",
     relativeSignal,
-    (ctx, el) => {
+    (ctx, drawEvent) => {
       for (let arrow of arrows()) {
         const { start, end } = arrow;
         ctx.beginPath();
@@ -48,7 +45,7 @@ export function anchorElement(
         ctx.stroke();
       }
       // if (!isActive() && !parentIsHovered()) return;
-      drawRect(ctx, el.rectangle(), "#eeeeee");
+      drawRect(ctx, { node: drawEvent.node, color: "#eeeeee" });
     }
   );
 
@@ -101,11 +98,8 @@ export function anchorElement(
   return anchor;
 }
 
-function getElementsByKey(
-  key: string,
-  element: CanvasElement
-): CanvasElement[] {
-  if (element.key !== key)
+function getElementsByKey(key: string, element: CanvasNode): CanvasNode[] {
+  if (element.type !== key)
     return element.children().flatMap((child) => getElementsByKey(key, child));
   return [
     element,
