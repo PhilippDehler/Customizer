@@ -1,8 +1,7 @@
 import { Accessor, createSignal } from "solid-js";
-import { Mouse, Rect } from "../types";
+import { Mouse, Nullable, Rect } from "../types";
 import { positionInRect } from "../utils";
 import { CanvasNode, Node } from "./dom";
-import { Nullable } from "./utils";
 
 export type Event = EventScope & EventBinding & EventLoopContext;
 

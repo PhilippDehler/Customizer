@@ -1,4 +1,4 @@
-import { Setter } from "solid-js";
+import { Setter } from "../core/signal";
 import { Position, Rect } from "../types";
 import { CanvasNode, Render } from "./dom";
 import { rotatePoint } from "./utils";

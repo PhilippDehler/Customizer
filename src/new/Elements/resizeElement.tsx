@@ -1,4 +1,4 @@
-import { createSignal } from "solid-js";
+import { createSignal } from "../../core/signal";
 import { Rect } from "../../types";
 import { add, positionInRect, sub } from "../../utils";
 import { CanvasNode } from "../dom";
@@ -30,13 +30,13 @@ function resizeElement(
   );
 
   resizeBox.addEventListener("up", () => {
-    setIsActive(false);
+    setIsActive(() => false);
   });
 
   resizeBox.addEventListener("down", (event) => {
     if (!event.mouse) return;
     if (!positionInRect(event.mouse, event.element.rectangle())) return;
-    setIsActive(true);
+    setIsActive(() => true);
   });
 
   resizeBox.addEventListener("move", (e) => {

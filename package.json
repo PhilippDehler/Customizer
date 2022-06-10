@@ -1,5 +1,6 @@
 {
   "devDependencies": {
+    "@types/lodash": "^4.14.182",
     "@types/mathjs": "^9.4.2",
     "babel-preset-solid": "^1.4.2",
     "tailwindcss": "^3.0.24",
@@ -11,6 +12,7 @@
     "@fortawesome/fontawesome-svg-core": "^1.2.35",
     "@fortawesome/free-solid-svg-icons": "^5.15.3",
     "autoprefixer": "^10.4.7",
+    "lodash": "^4.17.21",
     "math.js": "^1.1.46",
     "postcss": "^8.4.14",
     "solid-app-router": "^0.3.2",

@@ -1,4 +1,4 @@
-import { createSignal } from "solid-js";
+import { createSignal } from "../../core/signal";
 import { angleBetweenTwoVectors, positionInRect, sub } from "../../utils";
 import { CanvasNode } from "../dom";
 import { drawRect } from "../domRender";
@@ -26,7 +26,7 @@ export function rotatorElement(parent: () => CanvasNode) {
     }
   );
   dragger.onup(() => {
-    setIsActive(false);
+    setIsActive(() => false);
   });
   dragger.onmove((e) => {
     if (!isActive()) return;
@@ -45,6 +45,6 @@ export function rotatorElement(parent: () => CanvasNode) {
   dragger.ondown((event) => {
     if (!event.mouse) return;
     if (!positionInRect(event.mouse, event.element.rectangle())) return;
-    setIsActive(true);
+    setIsActive(() => true);
   });
 }

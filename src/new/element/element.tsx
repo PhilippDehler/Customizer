@@ -1,6 +1,6 @@
 import { createSignal, Signal } from "solid-js";
-import { Rect } from "../../types";
-import { createRelativeSignal, Nullable } from "../utils";
+import { Nullable, Rect } from "../../types";
+import { createRelativeSignal } from "../utils";
 
 type DOMElement = { rect: Signal<Rect>; render: () => void };
 

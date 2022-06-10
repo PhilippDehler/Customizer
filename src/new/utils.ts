@@ -1,5 +1,5 @@
 import { Accessor, createSignal, onCleanup, onMount, Signal } from "solid-js";
-import { Position, Rect } from "../types";
+import { Nullable, Position, Rect } from "../types";
 import { add, positionInRect, sub } from "../utils";
 import { CanvasNode } from "./dom";
 
@@ -15,7 +15,6 @@ export function useHover(element: () => CanvasNode): Accessor<boolean> {
   });
   return hover;
 }
-export type Nullable<T> = { [Key in keyof T]?: T[Key] };
 
 export function createRelativeSignal(
   relativeRectSignal: Signal<Rect>,

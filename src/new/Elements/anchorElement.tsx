@@ -1,4 +1,5 @@
-import { Accessor, createSignal } from "solid-js";
+import { Accessor } from "solid-js";
+import { createSignal } from "../../core/signal";
 import { Position, Rect } from "../../types";
 import { positionInRect } from "../../utils";
 import { CanvasNode } from "../dom";
@@ -51,7 +52,7 @@ export function anchorElement(
 
   anchor.addEventListener("up", (e) => {
     if (!e.mouse) return;
-    setIsActive(false);
+    setIsActive(() => false);
 
     const start = snapStart();
     if (!start) return null;
@@ -61,8 +62,6 @@ export function anchorElement(
       (a) =>
         e.element.id() !== a.id() && positionInRect(e.mouse!, a.rectangle())
     );
-    console.log(selected);
-
     if (!selected.length) {
       const s = e.mouse;
       const newAnchor = anchorElement(
@@ -74,7 +73,7 @@ export function anchorElement(
     } else {
       setArrows((prev) => [...prev, { start, end: selected[0].rectangle }]);
     }
-    setSnapStart(null);
+    setSnapStart(() => null);
   });
 
   anchor.addEventListener("move", (e) => {
@@ -93,7 +92,7 @@ export function anchorElement(
     if (!event.mouse) return;
     if (!positionInRect(event.mouse, event.element.rectangle())) return;
     setSnapStart(() => event.element.rectangle);
-    setIsActive(true);
+    setIsActive(() => true);
   });
   return anchor;
 }

@@ -1,4 +1,4 @@
-import { createSignal } from "solid-js";
+import { createSignal } from "../../core/signal";
 import { Dimensions } from "../../types";
 import { positionInRect } from "../../utils";
 import { CanvasNode } from "../dom";
@@ -29,7 +29,7 @@ export function dragElement(
   );
 
   dragger.addEventListener("up", () => {
-    setIsActive(false);
+    setIsActive(() => false);
   });
   function drag(e: Event) {
     if (!isActive()) return;
@@ -48,7 +48,7 @@ export function dragElement(
   dragger.addEventListener("down", (event) => {
     if (!event.mouse) return;
     if (!positionInRect(event.mouse, event.element.rectangle())) return;
-    setIsActive(true);
+    setIsActive(() => true);
   });
 
   return dragger;
