@@ -6,6 +6,7 @@ export function treeForEach<TNode>(
   fn(node);
   getNodes(node).forEach((n) => treeForEach(n, getNodes, fn));
 }
+
 export function treeForEachReverse<TNode>(
   node: TNode,
   getNodes: (node: TNode) => TNode[],

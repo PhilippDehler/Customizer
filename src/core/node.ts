@@ -1,89 +1,100 @@
-import { omit } from "lodash";
 import { Nullable, Rect } from "../types";
 import {
   buildEventHandler,
-  canvasEvents,
   initalizeNodeEvents,
   NodeEventHandlerMap,
-  SyntheticEventMap,
+  SyntheticListenerMap,
 } from "./event";
-import { Accessor, createSignal, Setter, Signal } from "./signal";
+import { getPainter, PainterContextByKey, PainterKeys } from "./render";
+import { Accessor, createSignal, Signal } from "./signal";
 import { typesafeKeys } from "./ts-utils";
 import { createUniqueId } from "./utils";
 
 export type Node = {
   id: () => string;
-  type: string;
-  rectangle: Accessor<Rect>;
-  setRectangle: Setter<Rect>;
+  type: PainterKeys;
+  rect: Signal<Rect>;
+  draw: (ctx: CanvasRenderingContext2D) => void;
   children: Accessor<Node[]>;
   parent: Accessor<Node> | null;
 } & NodeEventHandlerMap &
   NodeUtils;
 
+export type NodeInit = Nullable<SyntheticListenerMap> &
+  InitalNodes & {
+    rect: Signal<Rect> | Rect;
+    id?: string;
+  };
+
 type NodeUtils = {
-  addChild: (child: Node) => Node;
-  addChildren: (children: Node[]) => Node[];
+  /**
+   * returns self
+   */
+  addChild: (child: (parent: () => Node) => Node) => Node;
+  /**
+   * returns self
+   */
+  addChildren: (children: (parent: () => Node) => Node[]) => Node;
   querySelector: (id: string) => Node | null;
-  addAndCreateChild: (
-    type: string,
-    rect: Rect | Signal<Rect>,
-    build: NodeBuilder
-  ) => Node;
 };
 
-type NodeBuilder = (node: Node) => Nullable<SyntheticEventMap> & InitalNodes;
-
-export function Node(
-  type: string,
-  rect: Rect | Signal<Rect>,
-  build: NodeBuilder = () => ({}),
+export function Node<T extends PainterKeys>(
+  type: T,
+  init: NodeInit & { getPainterCtx: (node: Node) => PainterContextByKey[T] },
   parent: (() => Node) | null = null
 ): Node {
-  const id = createUniqueId();
-  const [rectangle, setRectangle] = Array.isArray(rect)
-    ? rect
-    : createSignal(rect);
+  const { rect, id = createUniqueId(), getPainterCtx, ...init_ } = init;
+
+  const rectSig = Array.isArray(rect) ? rect : createSignal(rect);
   const [children, setChildren] = createSignal<Node[]>([]);
 
   const self: Node = {
     id: () => id,
     type,
-    rectangle,
-    setRectangle,
+    draw: getPainter(type, () => getPainterCtx(self)),
+    rect: rectSig,
     parent,
     children,
     ...buildEventHandler(),
-    addAndCreateChild: (type, rect, build) => {
-      return self.addChild(Node(type, rect, build, () => self));
-    },
     addChild: (child) => {
-      setChildren((prev) => [...prev, child]);
-      return children().at(-1)!;
+      setChildren((prev) => [...prev, child(() => self)]);
+      return self;
     },
-    addChildren: (children) => children.map((child) => self.addChild(child)),
+    addChildren: (children_) => {
+      console.log(children_);
+      children_(() => self).map((child) => self.addChild(() => child));
+      return self;
+    },
     querySelector: (id: string) => {
       if (id === self.id()) return self;
       if (!parent) return null;
       return parent()?.querySelector(id) ?? null;
     },
   };
-  const built = build(self);
 
-  const initalEvents = omit(built, canvasEvents);
-  initalizeNodes(self, initalEvents);
-  initalizeNodeEvents(self, initalEvents);
+  const { ondown, onmove, onleave, onup, ...initalNodes } = init_;
+  initalizeNodes(self, initalNodes);
+  initalizeNodeEvents(self, { ondown, onmove, onleave, onup });
   return self;
 }
 
-export const initalizeNodes = (node: Node, init: InitalNodes = {}) => {
-  for (const key of typesafeKeys(init)) {
-    const nodes = init[key]!;
-    if (!("nodes" in init)) continue;
-    node.addChildren(nodes);
-  }
-};
+export const initalizeNodes = (node: Node, init: InitalNodes = {}) =>
+  typesafeKeys(init).forEach((key) => node.addChildren(init[key]));
 
 export type InitalNodes = {
-  [Key in `${string}able`]?: Node[];
+  [Key in `${string}able`]: (parent: () => Node) => Node[];
 };
+// const draggable: Node[] = null as any;
+// const resizeable: Node[] = null as any;
+
+// Node("testNode", {
+//   rect: { width: 20, height: 40, x: 0, y: 0, rotation: 0 },
+//   ondown: (e) => {
+//     console.log("down");
+//   },
+//   onup: (e) => {
+//     console.log("up");
+//   },
+//   draggable,
+//   resizeable,
+// });

@@ -1,34 +1,63 @@
-import { Rect, Position } from "./types";
+import { onCleanup, onMount } from "solid-js";
+import { createSignal } from "./core/signal";
 
-export function positionInRect(position: Position, rect: Rect) {
-  return (
-    position.x >= rect.x - rect.width / 2 &&
-    rect.x + rect.width / 2 >= position.x &&
-    position.y >= rect.y - rect.height / 2 &&
-    rect.y + rect.height / 2 >= position.y
+export function useElementRect(target: () => Element | undefined) {
+  const canvasSig = createSignal({
+    x: 0,
+    y: 0,
+    width: 0,
+    height: 0,
+    rotation: 0,
+  });
+  const { observe, unobserve } = makeResizeObserver(
+    (entries: ResizeObserverEntry[]) => {
+      for (const entry of entries)
+        canvasSig[1]((prev) => ({
+          ...prev,
+          width: entry.contentRect.width,
+          height: entry.contentRect.height,
+        }));
+    }
   );
+  onMount(() => {
+    const { width, height } = target()?.getBoundingClientRect() ?? {};
+    canvasSig[1]((prev) => ({
+      ...prev,
+      width: width ?? 0,
+      height: height ?? 0,
+    }));
+    observe(target()!);
+  });
+  onCleanup(() => target && unobserve(target()!));
+  return canvasSig;
 }
-export const dotProduct = (v0: Position, v1: Position) =>
-  v0.x * v1.x + v0.y * v1.y;
-export const determinate = (v0: Position, v1: Position) =>
-  v0.x * v1.x - v0.y * v1.y;
-export const magnitude = (v: Position) => Math.sqrt(v.x ** 2 + v.y ** 2);
 
-export const angleBetweenTwoVectors = (v0: Position, v1: Position) => {
-  const angle = Math.atan2(v0.y, v0.x) - Math.atan2(v1.y, v1.x);
-  return (angle >= 0 ? angle : angle + Math.PI * 2) % 360;
-};
+export function makeResizeObserver<T extends Element>(
+  callback: ResizeObserverCallback,
+  options?: ResizeObserverOptions
+): {
+  observe: (ref: T) => void;
+  unobserve: (ref: T) => void;
+} {
+  const resizeObserver = new ResizeObserver(callback);
+  onCleanup(resizeObserver.disconnect.bind(resizeObserver));
+  return {
+    observe: (ref) => ref && resizeObserver.observe(ref, options),
+    unobserve: resizeObserver.unobserve.bind(resizeObserver),
+  };
+}
 
-export const radToDeg = (rad: number) => (rad / Math.PI) * 180;
-export const sub = (v0: Position, v1: Position) => ({
-  x: v0.x - v1.x,
-  y: v0.y - v1.y,
-});
-
-export const add = (v0: Position, v1: Position) => ({
-  x: v0.x + v1.x,
-  y: v0.y + v1.y,
-});
-console.log(radToDeg(angleBetweenTwoVectors({ x: 0, y: 1 }, { x: 1, y: 1 })));
-
-export const applyRotation = () => {};
+export function useImageDimensions(src: string) {
+  const image = new Image();
+  const [dimensions, setDimensions] = createSignal({ width: 0, height: 0 });
+  function load() {
+    setDimensions((prev) => ({
+      width: image.naturalWidth,
+      height: image.naturalHeight,
+    }));
+    image.removeEventListener("load", load);
+  }
+  image.addEventListener("load", load);
+  image.src = src;
+  return { image, dimensions };
+}

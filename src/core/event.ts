@@ -26,6 +26,7 @@ export type SyntheticEventMap = {
 export type SyntheticListenerMap = {
   [Key in MapEventNames<CanvasEvents>]: Listener;
 };
+
 export type NodeEventHandlerMap = {
   dispatch: (type: CanvasEvents, scope: EventArgs & EventLoopContext) => void;
   addEventListener: (
@@ -93,6 +94,7 @@ export function dispatchEvents(
   type: CanvasEvents,
   {
     stopPropagation = () => {},
+
     ...args
   }: EventArgs & Nullable<EventLoopContext>
 ) {
@@ -113,18 +115,13 @@ export function dispatchEvents(
 
 const removeOn = <T extends string>(s: `on${T}`) => s.slice(2) as T;
 
-// export type InitalEvents = {
-//   [Key in `${string}able` | CanvasEvents]?:
-//     | Nullable<SyntheticListenerMap>
-//     | InitalEvents;
-// };
-
 export const initalizeNodeEvents = (
   node: Node,
   events: Nullable<SyntheticListenerMap> = {}
 ) => {
   for (const key of typesafeKeys(events)) {
     const value = events[key];
+    if (!value) continue;
     node.addEventListener(removeOn(key), value!);
   }
 };

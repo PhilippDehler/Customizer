@@ -1,59 +1,75 @@
-import { createSignal } from "../../core/signal";
-import { Rect } from "../../types";
-import { add, positionInRect, sub } from "../../utils";
-import { CanvasNode } from "../dom";
-import { drawRect } from "../domRender";
-import { Event } from "../event";
-import { createRelativeSignal, rotatePoint } from "../utils";
+import { Event } from "../core/event";
+import { Node } from "../core/node";
+import { createSignal } from "../core/signal";
+import { Rect } from "../types";
+import { wrapRelativePosition as getRelativePosition } from "../utils/calculateRelativePosition";
+import { positionInRect } from "../utils/collision-detection";
+import { add, rotatePoint, sub } from "../utils/math-utils";
 
 function resizeElement(
   key: keyof typeof cornerPairs,
-  parent: () => CanvasNode
+  elementToResize: () => Node
 ) {
   const [isActive, setIsActive] = createSignal(false);
-  const relativePosition = createRelativeSignal(
-    [parent().rectangle, parent().setRectangle],
-    (p) => ({
-      ...cornerPairs[key].corner(p()),
-      width: 30,
-      height: 30,
-    })
-  );
+  const [rect, setRect] = createSignal({
+    ...cornerPairs[key].corner(elementToResize().rect[0]()),
+    width: 10,
+    height: 10,
+    rotation: 0,
+  });
 
-  const resizeBox = parent().addAndCreateChild(
-    "box",
-    relativePosition,
-    (ctx, drawEvent) => {
-      // if (!isActive() && !parentIsHovered()) return;
-      drawRect(ctx, { node: drawEvent.node, color: "#000111" });
+  const relativePosition = getRelativePosition(
+    elementToResize().rect[0],
+    (p) => {
+      const s = p();
+      const r = cornerPairs[key].corner(s);
+      return {
+        ...r,
+        width: 10,
+        height: 10,
+      };
     }
   );
 
-  resizeBox.addEventListener("up", () => {
-    setIsActive(() => false);
-  });
+  return Node(
+    "circle",
+    {
+      rect: [relativePosition, setRect],
+      getPainterCtx: (n) => ({
+        background: "#2d82b7",
+        lineWidth: 2,
+        node: n,
+        radius: rect().width / 2,
+        strokeStyle: "#2d82b7",
+      }),
+      onup: () => setIsActive(() => false),
+      ondown: (e) => {
+        if (!e.mouse) return;
+        console.log("click");
+        if (!positionInRect(e.mouse, e.target.rect[0]())) return;
+        setIsActive(() => true);
+      },
+      onmove: (e) => {
+        if (!e.mouse || !isActive()) return;
+        console.log("move", isActive(), e.mouse);
+        console.log(e.target.parent?.());
 
-  resizeBox.addEventListener("down", (event) => {
-    if (!event.mouse) return;
-    if (!positionInRect(event.mouse, event.element.rectangle())) return;
-    setIsActive(() => true);
-  });
+        return e.target.parent?.()?.rect[1]((prev) => {
+          if (!e.mouse || (e.mouse.dx === 0 && e.mouse.dy === 0)) return prev;
+          console.log("move");
 
-  resizeBox.addEventListener("move", (e) => {
-    if (!e.mouse || !isActive()) return;
-
-    return e.element.parent()?.setRectangle((prev) => {
-      if (!e.mouse || (e.mouse.dx === 0 && e.mouse.dy === 0)) return prev;
-      return resize(key, prev, e);
-    });
-  });
+          return resize(key, prev, e);
+        });
+      },
+    },
+    elementToResize
+  );
 }
 
-export function resizeContainer(parent: () => CanvasNode) {
-  Object.keys(cornerPairs).forEach((key, i) => {
-    resizeElement(key as keyof typeof cornerPairs, parent);
-  });
-  return parent;
+export function resizable(parent: () => Node) {
+  return Object.keys(cornerPairs).map((key, i) =>
+    resizeElement(key as keyof typeof cornerPairs, parent)
+  );
 }
 
 function resize(key: keyof typeof cornerPairs, prev: Rect, e: Event) {

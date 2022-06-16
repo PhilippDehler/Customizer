@@ -1,8 +1,7 @@
 import { render } from "solid-js/web";
+import { CustomizerCanvas } from "./core/canvas";
 
 import "./index.css";
-import { CustomizerCanvas } from "./new/CustomizerCanvas";
-import { ToolMenu } from "./ToolMenu";
 
 function HelloWorld() {
   return (
