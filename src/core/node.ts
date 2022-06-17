@@ -61,7 +61,6 @@ export function Node<T extends PainterKeys>(
       return self;
     },
     addChildren: (children_) => {
-      console.log(children_);
       children_(() => self).map((child) => self.addChild(() => child));
       return self;
     },
