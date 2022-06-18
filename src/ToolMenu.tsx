@@ -11,7 +11,5 @@ export function ToolMenu() {
 }
 
 export function Tool() {
-  return (
-    <div class="w-36 shrink-0 aspect-square border-black border-4 rounded-xl"></div>
-  );
+  return <div class="w-36 shrink-0 aspect-square border-black border-4 rounded-xl"></div>;
 }

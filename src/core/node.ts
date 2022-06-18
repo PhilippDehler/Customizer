@@ -5,7 +5,7 @@ import {
   NodeEventHandlerMap,
   SyntheticListenerMap,
 } from "./event";
-import { getPainter, PainterContextByKey, PainterKeys } from "./render";
+import { PainterContextByKey, PainterKeys } from "./painter/types";
 import { Accessor, createSignal, Signal } from "./signal";
 import { typesafeKeys } from "./ts-utils";
 import { createUniqueId } from "./utils";
@@ -14,11 +14,15 @@ export type Node = {
   id: () => string;
   type: PainterKeys;
   rect: Signal<Rect>;
-  draw: (ctx: CanvasRenderingContext2D) => void;
   children: Accessor<Node[]>;
   parent: Accessor<Node> | null;
 } & NodeEventHandlerMap &
-  NodeUtils;
+  NodeUtils &
+  PainterContext<PainterKeys>;
+
+export type PainterContext<T extends PainterKeys> = {
+  getPainterCtx: (node: Node) => PainterContextByKey[T];
+};
 
 export type NodeInit = Nullable<SyntheticListenerMap> &
   InitalNodes & {
@@ -40,7 +44,7 @@ type NodeUtils = {
 
 export function Node<T extends PainterKeys>(
   type: T,
-  init: NodeInit & { getPainterCtx: (node: Node) => PainterContextByKey[T] },
+  init: NodeInit & PainterContext<T>,
   parent: (() => Node) | null = null
 ): Node {
   const { rect, id = createUniqueId(), getPainterCtx, ...init_ } = init;
@@ -48,10 +52,10 @@ export function Node<T extends PainterKeys>(
   const rectSig = Array.isArray(rect) ? rect : createSignal(rect);
   const [children, setChildren] = createSignal<Node[]>([]);
 
-  const self: Node = {
+  const self: Node & PainterContext<T> = {
     id: () => id,
     type,
-    draw: getPainter(type, () => getPainterCtx(self)),
+    getPainterCtx,
     rect: rectSig,
     parent,
     children,

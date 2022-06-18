@@ -1,9 +1,7 @@
 import { Position, Rect } from "../types";
 
-export const dotProduct = (v0: Position, v1: Position) =>
-  v0.x * v1.x + v0.y * v1.y;
-export const determinate = (v0: Position, v1: Position) =>
-  v0.x * v1.x - v0.y * v1.y;
+export const dotProduct = (v0: Position, v1: Position) => v0.x * v1.x + v0.y * v1.y;
+export const determinate = (v0: Position, v1: Position) => v0.x * v1.x - v0.y * v1.y;
 export const magnitude = (v: Position) => Math.sqrt(v.x ** 2 + v.y ** 2);
 
 export const angleBetweenTwoVectors = (v0: Position, v1: Position) => {

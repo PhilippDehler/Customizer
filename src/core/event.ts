@@ -29,14 +29,8 @@ export type SyntheticListenerMap = {
 
 export type NodeEventHandlerMap = {
   dispatch: (type: CanvasEvents, scope: EventArgs & EventLoopContext) => void;
-  addEventListener: (
-    type: CanvasEvents,
-    listener: (event: Event) => void
-  ) => void;
-  removeEventListener: (
-    type: CanvasEvents,
-    listener: (event: Event) => void
-  ) => void;
+  addEventListener: (type: CanvasEvents, listener: (event: Event) => void) => void;
+  removeEventListener: (type: CanvasEvents, listener: (event: Event) => void) => void;
 } & SyntheticEventMap;
 
 type MapEventNames<T extends CanvasEvents> = T extends infer CE
@@ -53,10 +47,7 @@ function getInitalListenerMap() {
 
 export const buildEventHandler = (): NodeEventHandlerMap => {
   const [get, set] = createSignal<ListenerMap>(getInitalListenerMap());
-  const addEventListener: NodeEventHandlerMap["addEventListener"] = (
-    type,
-    listener
-  ) => {
+  const addEventListener: NodeEventHandlerMap["addEventListener"] = (type, listener) => {
     set((prev) => {
       prev.get(type)!.add(listener);
       return prev;
@@ -69,10 +60,7 @@ export const buildEventHandler = (): NodeEventHandlerMap => {
         .forEach((listener) => listener(scope));
     },
     addEventListener,
-    removeEventListener: (
-      type: CanvasEvents,
-      listener: (event: Event) => void
-    ) => {
+    removeEventListener: (type: CanvasEvents, listener: (event: Event) => void) => {
       set((prev) => {
         prev.get(type)?.delete(listener);
         return prev;
@@ -85,7 +73,7 @@ export const buildEventHandler = (): NodeEventHandlerMap => {
       }),
       {} as {
         [Key in MapEventNames<CanvasEvents>]: (listener: Listener) => void;
-      }
+      },
     ),
   };
 };
@@ -96,7 +84,7 @@ export function dispatchEvents(
     stopPropagation = () => {},
 
     ...args
-  }: EventArgs & Nullable<EventLoopContext>
+  }: EventArgs & Nullable<EventLoopContext>,
 ) {
   const [propagation, setPropagation] = createSignal(true);
   const children = args.target.children();
@@ -115,10 +103,7 @@ export function dispatchEvents(
 
 const removeOn = <T extends string>(s: `on${T}`) => s.slice(2) as T;
 
-export const initalizeNodeEvents = (
-  node: Node,
-  events: Nullable<SyntheticListenerMap> = {}
-) => {
+export const initalizeNodeEvents = (node: Node, events: Nullable<SyntheticListenerMap> = {}) => {
   for (const key of typesafeKeys(events)) {
     const value = events[key];
     if (!value) continue;

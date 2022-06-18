@@ -6,10 +6,7 @@ import { wrapRelativePosition as getRelativePosition } from "../utils/calculateR
 import { positionInRect } from "../utils/collision-detection";
 import { add, rotatePoint, sub } from "../utils/math-utils";
 
-function resizeElement(
-  key: keyof typeof cornerPairs,
-  elementToResize: () => Node
-) {
+function resizeElement(key: keyof typeof cornerPairs, elementToResize: () => Node) {
   const [isActive, setIsActive] = createSignal(false);
   const [rect, setRect] = createSignal({
     ...cornerPairs[key].corner(elementToResize().rect[0]()),
@@ -18,18 +15,15 @@ function resizeElement(
     rotation: 0,
   });
 
-  const relativePosition = getRelativePosition(
-    elementToResize().rect[0],
-    (p) => {
-      const s = p();
-      const r = cornerPairs[key].corner(s);
-      return {
-        ...r,
-        width: 10,
-        height: 10,
-      };
-    }
-  );
+  const relativePosition = getRelativePosition(elementToResize().rect[0], (p) => {
+    const s = p();
+    const r = cornerPairs[key].corner(s);
+    return {
+      ...r,
+      width: 10,
+      height: 10,
+    };
+  });
 
   return Node(
     "circle",
@@ -62,13 +56,13 @@ function resizeElement(
         });
       },
     },
-    elementToResize
+    elementToResize,
   );
 }
 
 export function resizable(parent: () => Node) {
   return Object.keys(cornerPairs).map((key, i) =>
-    resizeElement(key as keyof typeof cornerPairs, parent)
+    resizeElement(key as keyof typeof cornerPairs, parent),
   );
 }
 
@@ -78,11 +72,7 @@ function resize(key: keyof typeof cornerPairs, prev: Rect, e: Event) {
 
   // we want to apply the resize by transforming it in not transformated space(NTS)
   // the canvas shows  everthing rotated so we have to rotate our input back to NTS
-  const delta = rotatePoint(
-    { x: e.mouse.dx, y: e.mouse.dy },
-    { x: 0, y: 0 },
-    -prev.rotation
-  );
+  const delta = rotatePoint({ x: e.mouse.dx, y: e.mouse.dy }, { x: 0, y: 0 }, -prev.rotation);
   // apply nts-mouse movement to corner
   const c = cornerPair.corner(prev);
   const corner = add(c, {
@@ -101,16 +91,8 @@ function resize(key: keyof typeof cornerPairs, prev: Rect, e: Event) {
   };
 
   //rotate back and to calculate the new width
-  const newOppsiteCorner = rotatePoint(
-    rotatedOppsiteCorner,
-    newCenter,
-    -prev.rotation
-  );
-  const newCornerPosition = rotatePoint(
-    rotatedCorner,
-    newCenter,
-    -prev.rotation
-  );
+  const newOppsiteCorner = rotatePoint(rotatedOppsiteCorner, newCenter, -prev.rotation);
+  const newCornerPosition = rotatePoint(rotatedCorner, newCenter, -prev.rotation);
   const { x: w, y: h } = sub(newOppsiteCorner, newCornerPosition);
 
   return {

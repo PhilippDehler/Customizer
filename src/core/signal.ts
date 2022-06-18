@@ -25,11 +25,7 @@ const createEffect = (() => {
     const cachedDeps = effectDependencyMap.get(effectId);
 
     // if the effect was already called and the dependencies didn't change, do nothing(for now)
-    if (
-      alreadyCalled &&
-      cachedDeps!.every((dep, idx) => dep === dependencies[idx])
-    )
-      return;
+    if (alreadyCalled && cachedDeps!.every((dep, idx) => dep === dependencies[idx])) return;
 
     effect();
     effectDependencyMap.set(effectId, dependencies);

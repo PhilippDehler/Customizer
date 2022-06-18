@@ -9,16 +9,14 @@ export function useElementRect(target: () => Element | undefined) {
     height: 0,
     rotation: 0,
   });
-  const { observe, unobserve } = makeResizeObserver(
-    (entries: ResizeObserverEntry[]) => {
-      for (const entry of entries)
-        canvasSig[1]((prev) => ({
-          ...prev,
-          width: entry.contentRect.width,
-          height: entry.contentRect.height,
-        }));
-    }
-  );
+  const { observe, unobserve } = makeResizeObserver((entries: ResizeObserverEntry[]) => {
+    for (const entry of entries)
+      canvasSig[1]((prev) => ({
+        ...prev,
+        width: entry.contentRect.width,
+        height: entry.contentRect.height,
+      }));
+  });
   onMount(() => {
     const { width, height } = target()?.getBoundingClientRect() ?? {};
     canvasSig[1]((prev) => ({
@@ -34,7 +32,7 @@ export function useElementRect(target: () => Element | undefined) {
 
 export function makeResizeObserver<T extends Element>(
   callback: ResizeObserverCallback,
-  options?: ResizeObserverOptions
+  options?: ResizeObserverOptions,
 ): {
   observe: (ref: T) => void;
   unobserve: (ref: T) => void;

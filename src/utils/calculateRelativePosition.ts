@@ -4,14 +4,14 @@ import { rotatePoint } from "./math-utils";
 
 export function wrapRelativePosition(
   relativRect: Accessor<Rect>,
-  getOffset?: (relativRect: () => Rect) => Nullable<Rect>
+  getOffset?: (relativRect: () => Rect) => Nullable<Rect>,
 ): Accessor<Rect> {
   return () => {
     const offset = getOffset?.(relativRect) ?? {};
     const rotation = rotatePoint(
       { ...relativRect(), ...offset },
       relativRect(),
-      relativRect().rotation
+      relativRect().rotation,
     );
     return {
       ...relativRect(),

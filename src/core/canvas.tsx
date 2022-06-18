@@ -3,14 +3,10 @@ import { dragable } from "../domain-elements/dragable";
 import { resizable } from "../domain-elements/resizable";
 import { rotateable } from "../domain-elements/rotator";
 import { Mouse } from "../types";
-import {
-  makeResizeObserver,
-  useElementRect,
-  useImageDimensions,
-} from "../utils";
+import { makeResizeObserver, useElementRect, useImageDimensions } from "../utils";
 import { dispatchEvents } from "./event";
 import { Node } from "./node";
-import { render } from "./render";
+import { paint } from "./painter/paint";
 import { createSignal } from "./signal";
 
 export function CustomizerCanvas() {
@@ -22,9 +18,7 @@ export function CustomizerCanvas() {
     rect: documentRect,
     getPainterCtx: (node) => ({ node }),
   });
-  const { dimensions, image } = useImageDimensions(
-    "https://picsum.photos/200/300"
-  );
+  const { dimensions, image } = useImageDimensions("https://picsum.photos/200/300");
   const { image: i2 } = useImageDimensions("https://picsum.photos/300/300");
   document
     .addChild((parent) =>
@@ -39,8 +33,8 @@ export function CustomizerCanvas() {
             node,
           }),
         },
-        parent
-      )
+        parent,
+      ),
     )
     .addChild((parent) =>
       Node(
@@ -52,8 +46,8 @@ export function CustomizerCanvas() {
           dragable,
           rotateable,
         },
-        parent
-      )
+        parent,
+      ),
     )
     .addChild((parent) =>
       Node(
@@ -68,8 +62,8 @@ export function CustomizerCanvas() {
           dragable,
           rotateable,
         },
-        parent
-      )
+        parent,
+      ),
     )
     .addChild((parent) =>
       Node(
@@ -84,8 +78,8 @@ export function CustomizerCanvas() {
           dragable,
           rotateable,
         },
-        parent
-      )
+        parent,
+      ),
     )
     .addChild((parent) =>
       Node(
@@ -100,19 +94,17 @@ export function CustomizerCanvas() {
           dragable,
           rotateable,
         },
-        parent
-      )
+        parent,
+      ),
     );
-  const { observe, unobserve } = makeResizeObserver(
-    (entries: ResizeObserverEntry[]) => {
-      for (const entry of entries)
-        document.rect[1]((prev) => ({
-          ...prev,
-          width: entry.contentRect.width,
-          height: entry.contentRect.height,
-        }));
-    }
-  );
+  const { observe, unobserve } = makeResizeObserver((entries: ResizeObserverEntry[]) => {
+    for (const entry of entries)
+      document.rect[1]((prev) => ({
+        ...prev,
+        width: entry.contentRect.width,
+        height: entry.contentRect.height,
+      }));
+  });
   onCleanup(() => canvas && unobserve(canvas!));
   onMount(() => {
     if (!canvas) return;
@@ -132,7 +124,7 @@ export function CustomizerCanvas() {
       frame = requestAnimationFrame(loop);
       const mouse = mousePosition();
       if (!ctx || !mouse) return;
-      render(ctx, document);
+      paint(ctx, document);
     }
 
     onCleanup(() => cancelAnimationFrame(frame));

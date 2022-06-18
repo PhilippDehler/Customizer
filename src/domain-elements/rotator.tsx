@@ -37,13 +37,10 @@ export function rotateable(parent: () => Node) {
         if (!isActive()) return;
         parent().rect[1]((prev) => {
           if (!e.mouse) return prev;
-          const angle = angleBetweenTwoVectors(
-            sub(e.mouse, parent().rect[0]()),
-            {
-              x: 0,
-              y: -1,
-            }
-          );
+          const angle = angleBetweenTwoVectors(sub(e.mouse, parent().rect[0]()), {
+            x: 0,
+            y: -1,
+          });
           return {
             ...prev,
             rotation: angle,
