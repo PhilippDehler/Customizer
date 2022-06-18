@@ -59,10 +59,26 @@ export const circle: PainterByKey["circle"] = (
   ctx.closePath();
 };
 
+export const line: PainterByKey["line"] = (ctx, { node, points, color }) => {
+  box(ctx, { node, background: "yellow" });
+  ctx.beginPath();
+  ctx.lineWidth = 5;
+  ctx.strokeStyle = color;
+  ctx.moveTo(0, 0);
+  points.forEach(({ x, y }, i) => {
+    const r = rotatePoint({ x: x, y: y }, node.rect[0](), node.rect[0]().rotation);
+    i === 0 ? ctx.moveTo(r.x, r.y) : ctx.lineTo(r.x, r.y);
+  });
+  ctx.stroke();
+  ctx.closePath();
+};
+
 export const painterByKey: PainterByKey = {
   box,
   img,
   document: box,
   text,
   circle,
+  point: circle,
+  line,
 };

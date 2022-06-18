@@ -1,5 +1,6 @@
 import { createUniqueId, onCleanup, onMount } from "solid-js";
 import { dragable } from "../domain-elements/dragable";
+import { line } from "../domain-elements/point";
 import { resizable } from "../domain-elements/resizable";
 import { rotateable } from "../domain-elements/rotator";
 import { Mouse } from "../types";
@@ -49,54 +50,56 @@ export function CustomizerCanvas() {
         parent,
       ),
     )
-    .addChild((parent) =>
-      Node(
-        "img",
-        {
-          rect: { x: 500, y: 200, rotation: 0, width: 400, height: 400 },
-          getPainterCtx: (node) => ({
-            node,
-            img: image,
-          }),
-          resizable,
-          dragable,
-          rotateable,
-        },
-        parent,
-      ),
-    )
-    .addChild((parent) =>
-      Node(
-        "img",
-        {
-          rect: { x: 430, y: 200, rotation: 0, width: 400, height: 400 },
-          getPainterCtx: (node) => ({
-            node,
-            img: image,
-          }),
-          resizable,
-          dragable,
-          rotateable,
-        },
-        parent,
-      ),
-    )
-    .addChild((parent) =>
-      Node(
-        "img",
-        {
-          rect: { x: 450, y: 200, rotation: 0, width: 400, height: 400 },
-          getPainterCtx: (node) => ({
-            node,
-            img: i2,
-          }),
-          resizable,
-          dragable,
-          rotateable,
-        },
-        parent,
-      ),
-    );
+    .addChild(line);
+  // )
+  // .addChild((parent) =>
+  //   Node(
+  //     "img",
+  //     {
+  //       rect: { x: 500, y: 200, rotation: 0, width: 400, height: 400 },
+  //       getPainterCtx: (node) => ({
+  //         node,
+  //         img: image,
+  //       }),
+  //       resizable,
+  //       dragable,
+  //       rotateable,
+  //     },
+  //     parent,
+  //   ),
+  // )
+  // .addChild((parent) =>
+  //   Node(
+  //     "img",
+  //     {
+  //       rect: { x: 430, y: 200, rotation: 0, width: 400, height: 400 },
+  //       getPainterCtx: (node) => ({
+  //         node,
+  //         img: image,
+  //       }),
+  //       resizable,
+  //       dragable,
+  //       rotateable,
+  //     },
+  //     parent,
+  //   ),
+  // )
+  // .addChild((parent) =>
+  //   Node(
+  //     "img",
+  //     {
+  //       rect: { x: 450, y: 200, rotation: 0, width: 400, height: 400 },
+  //       getPainterCtx: (node) => ({
+  //         node,
+  //         img: i2,
+  //       }),
+  //       resizable,
+  //       dragable,
+  //       rotateable,
+  //     },
+  //     parent,
+  //   ),
+  // );
   const { observe, unobserve } = makeResizeObserver((entries: ResizeObserverEntry[]) => {
     for (const entry of entries)
       document.rect[1]((prev) => ({

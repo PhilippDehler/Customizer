@@ -1,3 +1,4 @@
+import { Position } from "../../types";
 import { Node } from "../node";
 
 export type PainterContextByKey = {
@@ -12,6 +13,14 @@ export type PainterContextByKey = {
   };
   document: { node: Node; background?: string };
   img: { node: Node; img: HTMLImageElement };
+  line: { node: Node; points: Position[]; color: string };
+  point: {
+    node: Node;
+    background: string;
+    radius: number;
+    strokeStyle: string;
+    lineWidth: number;
+  };
 };
 
 export type PainterKeys = keyof PainterContextByKey;
