@@ -1,23 +1,28 @@
 import { Node } from "../core/node";
-import { createSignal } from "../core/signal";
-import { Rect } from "../types";
 import { useImageDimensions } from "../utils";
+import { dragable } from "./dragable";
+import { resizable } from "./resizable";
+import { able } from "./rotator";
 
 export function imageElement(src: string, parent: () => Node) {
-  const [rectangle, setRectangle] = createSignal<Rect>({
-    x: 300,
-    y: 300,
-    width: 0,
-    height: 0,
-    rotation: 0,
-  });
   const { image, dimensions } = useImageDimensions(src);
+  const node = Node(
+    "img",
+    {
+      getPainterCtx: (node) => ({
+        img: image,
+        rect: node.rect,
+      }),
+      rect: { dimensions, position: { x: 100, y: 100 }, rotation: 0 },
+      dragable,
 
-  return Node("img", {
-    getPainterCtx: (node) => ({
-      img: image,
-      node,
-    }),
-    rect: [rectangle, setRectangle],
-  });
+      able,
+      // rotateable,
+      resizable,
+    },
+    parent,
+  );
+
+  console.log(node.rect);
+  return node;
 }

@@ -1,10 +1,10 @@
 import { onCleanup, onMount } from "solid-js";
-import { createSignal } from "./core/signal";
+import { createObservableSignal, createSignal } from "./core/signal";
 
 export function useElementRect(target: () => Element | undefined) {
   const canvasSig = createSignal({
-    x: 0,
-    y: 0,
+    x: 500,
+    y: 500,
     width: 0,
     height: 0,
     rotation: 0,
@@ -47,9 +47,9 @@ export function makeResizeObserver<T extends Element>(
 
 export function useImageDimensions(src: string) {
   const image = new Image();
-  const [dimensions, setDimensions] = createSignal({ width: 0, height: 0 });
+  const dimensions = createObservableSignal({ width: 0, height: 0 });
   function load() {
-    setDimensions((prev) => ({
+    dimensions.setValue((prev) => ({
       width: image.naturalWidth,
       height: image.naturalHeight,
     }));
@@ -59,3 +59,10 @@ export function useImageDimensions(src: string) {
   image.src = src;
   return { image, dimensions };
 }
+
+export const log = (l: { [key: string]: any }) =>
+  console.log(
+    Object.entries(l)
+      .map(([key, value]) => `${key}:${JSON.stringify(value)}`)
+      .join("\n"),
+  );

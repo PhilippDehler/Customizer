@@ -1,21 +1,21 @@
 import { Position } from "../../types";
-import { Node } from "../node";
+import { NodeRect } from "../nodeRect";
 
 export type PainterContextByKey = {
-  box: { node: Node; background?: string };
-  text: { node: Node; fontSize: string; text: string; color: string };
+  box: { rect: NodeRect; background?: string };
+  text: { rect: NodeRect; fontSize: string; text: string; color: string };
   circle: {
-    node: Node;
+    rect: NodeRect;
     background: string;
     radius: number;
     strokeStyle: string;
     lineWidth: number;
   };
-  document: { node: Node; background?: string };
-  img: { node: Node; img: HTMLImageElement };
-  line: { node: Node; points: Position[]; color: string };
+  document: { rect: NodeRect; background?: string };
+  img: { rect: NodeRect; img: HTMLImageElement };
+  line: { rect: NodeRect; points: Position[]; color: string };
   point: {
-    node: Node;
+    rect: NodeRect;
     background: string;
     radius: number;
     strokeStyle: string;
@@ -28,5 +28,6 @@ export type PainterByKey = {
   [Key in PainterKeys]: (
     canvasCtx: CanvasRenderingContext2D,
     painterCtx: PainterContextByKey[Key],
+    origin: Position,
   ) => void;
 };

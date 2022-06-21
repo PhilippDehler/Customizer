@@ -1,73 +1,70 @@
 import { createUniqueId, onCleanup, onMount } from "solid-js";
-import { dragable } from "../domain-elements/dragable";
-import { line } from "../domain-elements/point";
-import { resizable } from "../domain-elements/resizable";
-import { rotateable } from "../domain-elements/rotator";
+import { imageElement } from "../domain-elements/imageElement";
+// import { resizable } from "../domain-elements/resizable";
 import { Mouse } from "../types";
-import { makeResizeObserver, useElementRect, useImageDimensions } from "../utils";
+import { makeResizeObserver } from "../utils";
 import { dispatchEvents } from "./event";
 import { Node } from "./node";
+import { NodeRect } from "./nodeRect";
 import { paint } from "./painter/paint";
+import { point } from "./painter/painter";
 import { createSignal } from "./signal";
+export const [mousePosition, setMousePosition] = createSignal<Mouse | null>(null);
 
 export function CustomizerCanvas() {
-  const [mousePosition, setMousePosition] = createSignal<Mouse | null>(null);
   let canvas: HTMLCanvasElement | undefined;
   const fpsCounter = countFps();
-  const documentRect = useElementRect(() => canvas);
+  const doc_Rect = NodeRect(
+    {
+      dimensions: { width: 1000, height: 1000 },
+      position: { x: 500, y: 500 },
+      rotation: Math.PI / 4,
+    },
+    null,
+  );
   const document = Node("document", {
-    rect: documentRect,
-    getPainterCtx: (node) => ({ node }),
+    rect: doc_Rect,
+    getPainterCtx: (node) => ({ rect: node.rect }),
   });
-  const { dimensions, image } = useImageDimensions("https://picsum.photos/200/300");
-  const { image: i2 } = useImageDimensions("https://picsum.photos/300/300");
   document
     .addChild((parent) =>
       Node(
         "text",
         {
-          rect: { x: 10, y: 50, rotation: 0, width: 40, height: 40 },
+          rect: {
+            dimensions: { width: 200, height: 200 },
+            position: { x: -450, y: -450 },
+            rotation: 0,
+          },
           getPainterCtx: (node) => ({
             text: String(fpsCounter.getFps()),
             fontSize: "48px",
             color: "yellow",
-            node,
+            rect: node.rect,
           }),
         },
         parent,
       ),
     )
-    .addChild((parent) =>
-      Node(
-        "box",
-        {
-          rect: { x: 400, y: 400, rotation: 0, width: 200, height: 400 },
-          getPainterCtx: (node) => ({ node, background: "blue" }),
-          resizable,
-          dragable,
-          rotateable,
-        },
-        parent,
-      ),
-    )
-    .addChild(line);
-  // )
-  // .addChild((parent) =>
-  //   Node(
-  //     "img",
-  //     {
-  //       rect: { x: 500, y: 200, rotation: 0, width: 400, height: 400 },
-  //       getPainterCtx: (node) => ({
-  //         node,
-  //         img: image,
-  //       }),
-  //       resizable,
-  //       dragable,
-  //       rotateable,
-  //     },
-  //     parent,
-  //   ),
-  // )
+    // .addChild((parent) =>
+    //   Node(
+    //     "box",
+    //     {
+    //       rect: {
+    //         dimensions: { width: 300, height: 200 },
+    //         position: { x: 0, y: 0 },
+    //         rotation: 0,
+    //       },
+    //       getPainterCtx: (node) => ({ rect: node.rect, background: "blue" }),
+    //       // resizable,
+    //       dragable,
+    //       // rotateable,
+    //     },
+    //     parent,
+    //   ),
+    // )
+    .addChild((p) => imageElement("https://picsum.photos/200/300", p));
+  console.log(document);
   // .addChild((parent) =>
   //   Node(
   //     "img",
@@ -102,23 +99,24 @@ export function CustomizerCanvas() {
   // );
   const { observe, unobserve } = makeResizeObserver((entries: ResizeObserverEntry[]) => {
     for (const entry of entries)
-      document.rect[1]((prev) => ({
-        ...prev,
+      document.rect.dimensions.setValue({
         width: entry.contentRect.width,
         height: entry.contentRect.height,
-      }));
+      });
   });
   onCleanup(() => canvas && unobserve(canvas!));
   onMount(() => {
     if (!canvas) return;
-    document.rect[1]((prev) => ({
-      ...prev,
-      x: (canvas?.width ?? 0) / 2,
-      y: (canvas?.height ?? 0) / 2,
-      width: canvas?.width ?? 0,
-      height: canvas?.height ?? 0,
-    }));
     observe(canvas!);
+    document.rect.dimensions.setValue({
+      width: canvas.width,
+      height: canvas.height,
+    });
+    document.rect.position.setValue({
+      x: canvas.width / 2,
+      y: canvas.height / 2,
+    });
+
     const ctx = canvas?.getContext("2d");
     let frame = requestAnimationFrame(loop);
 
@@ -127,7 +125,8 @@ export function CustomizerCanvas() {
       frame = requestAnimationFrame(loop);
       const mouse = mousePosition();
       if (!ctx || !mouse) return;
-      paint(ctx, document);
+
+      paint(ctx, document, () => point(canvas?.getContext("2d")!, mousePosition()!));
     }
 
     onCleanup(() => cancelAnimationFrame(frame));

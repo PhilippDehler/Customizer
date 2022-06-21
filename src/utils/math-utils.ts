@@ -20,6 +20,7 @@ export const add = (v0: Position, v1: Position) => ({
 });
 
 export const radToDeg = (rad: number) => (rad / Math.PI) * 180;
+export const degToRad = (deg: number) => (deg / 180) * Math.PI;
 
 export function rotatePoint(point: Position, origin: Position, angle: number) {
   const transformedOrigin = sub(point, origin);

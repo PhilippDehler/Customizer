@@ -1,19 +1,20 @@
-import { Nullable, Rect } from "../types";
+import { Nullable } from "../types";
 import {
   buildEventHandler,
   initalizeNodeEvents,
   NodeEventHandlerMap,
   SyntheticListenerMap,
 } from "./event";
+import { InitalRect, NodeRect } from "./nodeRect";
 import { PainterContextByKey, PainterKeys } from "./painter/types";
-import { Accessor, createSignal, Signal } from "./signal";
+import { Accessor, createSignal } from "./signal";
 import { typesafeKeys } from "./ts-utils";
 import { createUniqueId } from "./utils";
 
 export type Node = {
   id: () => string;
   type: PainterKeys;
-  rect: Signal<Rect>;
+  rect: NodeRect;
   children: Accessor<Node[]>;
   parent: Accessor<Node> | null;
 } & NodeEventHandlerMap &
@@ -26,7 +27,7 @@ export type PainterContext<T extends PainterKeys> = {
 
 export type NodeInit = Nullable<SyntheticListenerMap> &
   InitalNodes & {
-    rect: Signal<Rect> | Rect;
+    rect: InitalRect;
     id?: string;
   };
 
@@ -45,18 +46,16 @@ type NodeUtils = {
 export function Node<T extends PainterKeys>(
   type: T,
   init: NodeInit & PainterContext<T>,
-  parent: (() => Node) | null = null
+  parent: Accessor<Node> | null = null,
 ): Node {
   const { rect, id = createUniqueId(), getPainterCtx, ...init_ } = init;
-
-  const rectSig = Array.isArray(rect) ? rect : createSignal(rect);
   const [children, setChildren] = createSignal<Node[]>([]);
-
+  const rect_ = NodeRect(rect, parent ? () => parent().rect : null);
   const self: Node & PainterContext<T> = {
     id: () => id,
     type,
     getPainterCtx,
-    rect: rectSig,
+    rect: rect_,
     parent,
     children,
     ...buildEventHandler(),
