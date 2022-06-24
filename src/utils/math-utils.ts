@@ -18,6 +18,7 @@ export const add = (v0: Position, v1: Position) => ({
   x: v0.x + v1.x,
   y: v0.y + v1.y,
 });
+export const sum = (...items: number[]) => items.reduce((a, b) => a + b, 0);
 
 export const radToDeg = (rad: number) => (rad / Math.PI) * 180;
 export const degToRad = (deg: number) => (deg / 180) * Math.PI;

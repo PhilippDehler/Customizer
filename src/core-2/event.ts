@@ -1,7 +1,7 @@
+import { Node } from "../core/node";
+import { typesafeKeys } from "../core/ts-utils";
 import { Mouse } from "../types";
-import { Node } from "./node";
-import { createSignal } from "./signal";
-import { typesafeKeys } from "./ts-utils";
+import { createSignal } from "./reactive";
 
 export type Event = EventArgs & EventLoopContext;
 
@@ -48,9 +48,10 @@ function initalizeListernerMap() {
 export const createEventSystem = (): NodeEventHandlerMap => {
   const [get, set] = createSignal<ListenerMap>(initalizeListernerMap());
   const addEventListener: NodeEventHandlerMap["addEventListener"] = (type, listener) => {
-    set((prev) => {
-      prev.get(type)!.add(listener);
-      return prev;
+    set(() => {
+      const map = get().get(type);
+      map?.add(listener);
+      return map;
     });
   };
   return {

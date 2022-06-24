@@ -9,6 +9,7 @@ export function useElementRect(target: () => Element | undefined) {
     height: 0,
     rotation: 0,
   });
+
   const { observe, unobserve } = makeResizeObserver((entries: ResizeObserverEntry[]) => {
     for (const entry of entries)
       canvasSig[1]((prev) => ({
@@ -17,6 +18,7 @@ export function useElementRect(target: () => Element | undefined) {
         height: entry.contentRect.height,
       }));
   });
+
   onMount(() => {
     const { width, height } = target()?.getBoundingClientRect() ?? {};
     canvasSig[1]((prev) => ({
@@ -66,3 +68,8 @@ export const log = (l: { [key: string]: any }) =>
       .map(([key, value]) => `${key}:${JSON.stringify(value)}`)
       .join("\n"),
   );
+//TODO: i dont know if this works
+
+export const assertNever = (v: never) => {
+  throw new Error("Never assertion");
+};

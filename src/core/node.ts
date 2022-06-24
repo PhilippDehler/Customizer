@@ -1,6 +1,6 @@
 import { Nullable } from "../types";
 import {
-  buildEventHandler,
+  createEventSystem,
   initalizeNodeEvents,
   NodeEventHandlerMap,
   SyntheticListenerMap,
@@ -58,7 +58,7 @@ export function Node<T extends PainterKeys>(
     rect: rect_,
     parent,
     children,
-    ...buildEventHandler(),
+    ...createEventSystem(),
     addChild: (child) => {
       setChildren((prev) => [...prev, child(() => self)]);
       return self;
@@ -74,9 +74,9 @@ export function Node<T extends PainterKeys>(
     },
   };
 
-  const { ondown, onmove, onleave, onup, ...initalNodes } = init_;
+  const { onDown, onMove, onLeave, onUp, ...initalNodes } = init_;
   initalizeNodes(self, initalNodes);
-  initalizeNodeEvents(self, { ondown, onmove, onleave, onup });
+  initalizeNodeEvents(self, { onDown, onMove, onLeave, onUp });
   return self;
 }
 
